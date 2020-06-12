@@ -442,3 +442,67 @@ sys_pipe(void)
   fd[1] = fd1;
   return 0;
 }
+//Executes function that has to be timed
+int
+sys_time(void)
+{
+  char *path, *argv[MAXARG];
+  int i;
+  uint uargv, uarg;
+
+  if(argstr(0, &path) < 0 || argint(1, (int*)&uargv) < 0){
+    return -1;
+  }
+  memset(argv, 0, sizeof(argv));
+  for(i=0;; i++){
+    if(i >= NELEM(argv))
+      return -1;
+    if(fetchint(uargv+4*i, (int*)&uarg) < 0)
+      return -1;
+    if(uarg == 0){
+      argv[i] = 0;
+      break;
+    }
+    if(fetchstr(uarg, &argv[i]) < 0)
+      return -1;
+  }
+  
+  cprintf("%d printing\n", i);
+  return exec(argv[1], argv+1);
+}
+
+int
+sys_lseek(void)
+{
+  int fd, offset, base, newoff, zerosize, i;
+  char *zeroed, *z;
+  struct file *f;
+
+  argfd(0, &fd, &f);
+  argint(1, &offset);
+  argint(2, &base);
+  if(base != SEEK_SET && base != SEEK_CUR && base != SEEK_END)
+    return -1;
+  if(base == SEEK_SET)
+    newoff = offset;
+  else if(base == SEEK_CUR)
+    newoff = f->off + offset;
+  else  // base == SEEK_END
+    newoff = f->ip->size + offset;
+  if(newoff > f->ip->size)
+  {
+    zerosize = newoff - f->ip->size;
+    zeroed = kalloc();
+    z = zeroed;
+    for(i = 0; i < 4096; i++)
+      *z++ = 0;
+    while(zerosize > 0)
+    {
+      filewrite(f, zeroed, zerosize);
+      zerosize -= 4096;
+    }
+    kfree(zeroed);
+  }
+  f->off = newoff;
+  return 0;
+}

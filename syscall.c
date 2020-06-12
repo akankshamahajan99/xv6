@@ -103,6 +103,11 @@ extern int sys_unlink(void);
 extern int sys_wait(void);
 extern int sys_write(void);
 extern int sys_uptime(void);
+//newly added system calls
+extern int sys_shutdown(void);
+extern int sys_time(void);
+extern int sys_getptable(void);
+extern int sys_lseek(void);
 
 static int (*syscalls[])(void) = {
 [SYS_fork]    sys_fork,
@@ -126,6 +131,10 @@ static int (*syscalls[])(void) = {
 [SYS_link]    sys_link,
 [SYS_mkdir]   sys_mkdir,
 [SYS_close]   sys_close,
+[SYS_shutdown] sys_shutdown,
+[SYS_time]    sys_time,
+[SYS_getptable]      sys_getptable,
+[SYS_lseek]   sys_lseek,
 };
 
 void
@@ -133,9 +142,10 @@ syscall(void)
 {
   int num;
   struct proc *curproc = myproc();
-
   num = curproc->tf->eax;
+  //cprintf("syscall num: %d\n", num);
   if(num > 0 && num < NELEM(syscalls) && syscalls[num]) {
+  	//system call called here by unfolding the mapping
     curproc->tf->eax = syscalls[num]();
   } else {
     cprintf("%d %s: unknown sys call %d\n",

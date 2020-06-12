@@ -23,6 +23,10 @@ int getpid(void);
 char* sbrk(int);
 int sleep(int);
 int uptime(void);
+int shutdown(void);
+int time(int, char**);
+int getptable(int, void*);
+int lseek(int, int, int);
 
 // ulib.c
 int stat(const char*, struct stat*);

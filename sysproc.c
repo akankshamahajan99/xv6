@@ -7,6 +7,9 @@
 #include "mmu.h"
 #include "proc.h"
 
+// returns struct proc from proc.c
+extern struct proc * getptable_proc(void);
+
 int
 sys_fork(void)
 {
@@ -88,4 +91,45 @@ sys_uptime(void)
   xticks = ticks;
   release(&tickslock);
   return xticks;
+}
+// shuts down the machine
+int
+sys_shutdown(void)
+{
+  outb(0x501, 0x0);
+  exit();
+  return 0;
+}
+
+// To see the current process state
+int
+sys_getptable(void)
+{
+  int size;
+  char *buf;
+  char *s;
+  struct proc *p = '\0';
+
+  if(argint(0, &size) < 0)
+    return -1;
+  if(argptr(1, &buf, size) < 0)
+    return -1;
+  //buf gets updated
+  //buf = ptables from ps.s
+  s = buf;
+  p = getptable_proc();
+
+  while(buf + size > s && p->state != UNUSED)
+  {
+    *(int *)s = p->state;
+    s += 4;
+    *(int *)s = p->pid;
+    s += 4;
+    *(int *)s = p->parent->pid;
+    s += 4;
+    memmove(s, p->name, 16);
+    s += 16;
+    p++;
+  }
+  return 0;
 }

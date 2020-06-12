@@ -20,3 +20,7 @@
 #define SYS_link   19
 #define SYS_mkdir  20
 #define SYS_close  21
+#define SYS_shutdown 22
+#define SYS_time   23
+#define SYS_getptable 24
+#define SYS_lseek  25
